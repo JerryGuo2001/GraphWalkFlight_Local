@@ -66,7 +66,7 @@ var welcome = {
     data.stimulus = "intro"
     data.cities = `${cityNameList.join("; ")}`;
     data.city_images = `${image_city_names.join("; ")}`
-    save_data()
+    
   }
 }
 //welcome page end
@@ -840,9 +840,6 @@ var shortestpath_phase = {
     });
     data.cumulative_accuracy = sum / correctness.length;
 
-    if (curr_shortest_trial>=n_shortest_trial){
-      save_data()
-    }
     sfa=data.key_press,
     curr_shortest_trial=curr_shortest_trial+1,
     shortestpath_phase.stimulus=create_shortestpath_trial(shortest_base64_up,shortest_base64_left,shortest_base64_right,curr_shortest_trial)
@@ -1055,7 +1052,7 @@ function recon_createPhase3(numberoftrial){
         //   });
         // },
         on_start:function(){
-          save_data()
+          
         },
         on_finish: function (data) {
           data.trial_type='Graph Reconstruction'
