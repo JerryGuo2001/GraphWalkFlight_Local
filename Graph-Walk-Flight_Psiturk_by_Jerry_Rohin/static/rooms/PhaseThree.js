@@ -2,7 +2,7 @@
 //<button id='bighelp' onclick='displayhelp()'>HELP</button>
 var phasethreeroom=["<div id='displayhelp' style='display:none'><p>Click and drag the images from the top that you wish to place in the gray container when creating your full path. Then, click on each of the two images to connect them."
 +"<br /> Click on each of the two images to connect them.<br> To remove a connection, simply click on the two images again and the line will disappear. To remove an image that you have already placed, click on the image and then the return button in the bottom right. <br> once you are finished, press the 'submit' button to book the next client</p></div><button id='batman' style='display: block;margin: 0 auto;padding: 10px 20px;background-color: #4CAF50;color: black;border: none;border-radius: 8px;font-size: 16px;cursor: pointer;box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);transition: background-color 0.3s ease;', onclick='initiatep3()'>Click to start</button><div id='spiderman' style='display: none;'><div id='Phase3Body'><br><div id='div2'  style='width: 700px; margin: 0 auto; position: relative; bottom: 10%; border: 1px solid #aaaaaa;'><img id='drag01' src='../static/images/Aliance.png' alt='Aliance'width='100' height='120' draggable='true' ondragstart='drag(event)'><img id='drag02' src='../static/images/Boulder.png' alt='Boulder'width='100' height='120' draggable='true' ondragstart='drag(event)'><img id='drag03' src='../static/images/Cornwall.png' alt='Cornwall'width='100' height='120' draggable='true' ondragstart='drag(event)'><img id='drag04' src='../static/images/Custer.png' alt='Custer'width='100' height='120' draggable='true' ondragstart='drag(event)'><img id='drag05' src='../static/images/DelawareCity.png' alt='DelawareCity'width='100' height='120' draggable='true' ondragstart='drag(event)'><img id='drag06' src='../static/images/Medora.png' alt='Medora'width='100' height='120' draggable='true' ondragstart='drag(event)'><img id='drag07' src='../static/images/Newport.png' alt='Newport'width='100' height='120' draggable='true' ondragstart='drag(event)'><img id='drag08' src='../static/images/ParkCity.png' alt='ParkCity'width='100' height='120' draggable='true' ondragstart='drag(event)'><img id='drag09' src='../static/images/Racine.png' alt='Racine'width='100' height='120' draggable='true' ondragstart='drag(event)'><img id='drag10' src='../static/images/Sitka.png' alt='Sitka'width='100' height='120' draggable='true' ondragstart='drag(event)'><img id='drag11' src='../static/images/WestPalmBeach.png' alt='WestPalmBeach'width='100' height='120' draggable='true' ondragstart='drag(event)'><img id='drag12' src='../static/images/Yukon.png' alt='Yukon'width='100' height='120' draggable='true' ondragstart='drag(event)'>"
-                    +"<img id='drag13' src='../static/images/Yukon.png' alt='Yukon'width='100' height='120' draggable='true' ondragstart='drag(event)'></div><div id='div1' style='width: 1200px; height: 400px; margin: 0 auto; position: relative; bottom: 10%; border: 1px solid #aaaaaa; background-color: lightgray;'ondrop='drop(event)' ondragover='allowDrop(event)'><div id='div3' style='width: 1200px; height: 400px; margin: 0 auto; position: relative; '></div><img id='imgL' style='position:relative;right:450px;bottom: 250px;border:2px solid blue' width='100' height='120'><img id='imgR' style='position:relative;left:450px;bottom: 250px;border:2px solid blue' width='100' height='120'><img id='return' src='../static/images/return.png' style='position: relative;left: 450px;bottom: 100px ;border: 2px solid black' width='50'height='50'> <button id='nextButton' style='display: none; padding: 10px 20px; background-color: #4CAF50; color: black; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); transition: background-color 0.3s ease;'>Submit</button></div></div></div>"]
+                    +"<img id='drag13' src='../static/images/Yukon.png' alt='Yukon'width='100' height='120' draggable='true' ondragstart='drag(event)'></div><div id='div1' style='width: 1200px; height: 400px; margin: 0 auto; position: relative; bottom: 10%; border: 1px solid #aaaaaa; background-color: lightgray;'ondrop='drop(event)' ondragover='allowDrop(event)'><div id='div3' style='width: 1200px; height: 400px; margin: 0 auto; position: relative; '></div><img id='imgL' style='position:relative;right:450px;bottom: 250px;border:2px solid blue' width='100' height='120'><img id='imgR' style='position:relative;left:450px;bottom: 250px;border:2px solid blue' width='100' height='120'><img id='return' src='../static/images/return.png' style='position: relative;left: 450px;bottom: 100px ;border: 2px solid black' width='50'height='50'> <button id='nextButton' style='display: block; padding: 10px 20px; background-color: #4CAF50; color: black; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); transition: background-color 0.3s ease;'>Submit</button></div></div></div>"]
 //jspsych-html-button-response-button-0
 //PART THAT NEED TO BE RUN UNDER BUTTON
 var images = []
@@ -43,7 +43,6 @@ function showWarning(messageText) {
     message.style.fontSize = '18px';
     message.style.zIndex = '1000';
     document.body.appendChild(message);
-
     setTimeout(() => {
         message.remove();
     }, 5000);
@@ -106,50 +105,6 @@ function getUniquePathBetween(start, end) {
 
 
 function continueButton() {
-    const droppedImages = Array.from(document.getElementById('div1').children)
-    .filter(el => el.tagName === 'IMG' && el.id.startsWith('drag'));
-
-    // Step 1: Get the one valid path from imgL to imgR
-    const route = getUniquePathBetween("imgL", "imgR");
-
-    // Step 2: If no path, or some images are not in it — show warning
-    if (!route || route.length === 0) {
-        showWarning("No valid route found between the left and right cities.");
-        return;
-    }
-
-    // Step 3: Check if all dropped images are part of the path
-    const anyOutOfRoute = droppedImages.some(img => !route.includes(img.id));
-
-    if (anyOutOfRoute) {
-        showWarning("There is an unconnected image on the route. Either return it or connect it.");
-        document.getElementById('nextButton').style.display = 'none';
-        return;
-    }
-
-    const message = document.createElement('div');
-    message.innerText = "You can now continue";
-    message.style.position = 'fixed';
-    message.style.top = '20px';
-    message.style.left = '50%';
-    message.style.transform = 'translateX(-50%)';
-    message.style.backgroundColor = '#4CAF50';
-    message.style.color = 'white';
-    message.style.padding = '10px 20px';
-    message.style.borderRadius = '8px';
-    message.style.boxShadow = '0px 4px 6px rgba(0, 0, 0, 0.1)';
-    message.style.fontSize = '18px';
-    message.style.zIndex = '1000';
-    document.body.appendChild(message);
-
-    setTimeout(() => {
-      message.remove();
-    }, 1000);
-
-    // Hide the top instruction
-    const instructionDiv = document.getElementById('displayhelp');
-    if (instructionDiv) instructionDiv.style.display = 'none';
-
     // Move the Submit button up to that position
     const submitBtn = document.getElementById('nextButton');
     submitBtn.style.display = 'block';
@@ -163,12 +118,28 @@ function continueButton() {
     bottomArea.removeChild(submitBtn);
     }
 
-    instructionDiv?.parentNode?.insertBefore(submitBtn, instructionDiv);
-
     submitBtn.onclick = () => {
-        // Re-check all conditions before allowing finish
         const droppedImages = Array.from(document.getElementById('div1').children)
-            .filter(el => el.tagName === 'IMG' && el.id.startsWith('drag'));
+        .filter(el => el.tagName === 'IMG' && el.id.startsWith('drag'));
+
+        // Step 1: Get the one valid path from imgL to imgR
+        const route = getUniquePathBetween("imgL", "imgR");
+
+        // Step 2: If no path, or some images are not in it — show warning
+        if (!route || route.length === 0) {
+            showWarning("No valid route found between the left and right cities.");
+            return;
+        }
+
+        // Step 3: Check if all dropped images are part of the path
+        const anyOutOfRoute = droppedImages.some(img => !route.includes(img.id));
+
+        if (anyOutOfRoute) {
+            showWarning("There is an unconnected image on the route. Either return it or connect it.");
+            return;
+        }
+
+
     
         const connectedIds = new Set();
         for (let key in specificline) {
@@ -192,8 +163,6 @@ function continueButton() {
         }
         if (goal_detor_deter === true) {
             chooseMiddleImageForMemory();
-            // Hide the Submit button
-            submitBtn.style.display = 'none';
             clearAllCanvases();
         
             const div1 = document.getElementById('div1');
@@ -222,13 +191,14 @@ function continueButton() {
             // Step 3: Hide task UI
             document.getElementById('div1').style.display = 'none';
             document.getElementById('div2').style.display = 'none';
+            document.getElementById('spiderman').style.display = 'none';
             document.getElementById('displayhelp').style.display = 'none';
         
             // Step 4: Show detour instruction div
             const detourDiv = document.createElement('div');
             detourDiv.id = 'detour-warning';
             detourDiv.style.position = 'fixed';
-            detourDiv.style.top = '0';
+            detourDiv.style.top = '300';
             detourDiv.style.left = '50%';
             detourDiv.style.transform = 'translateX(-50%)';
             detourDiv.style.backgroundColor = '#fff';
@@ -275,6 +245,7 @@ function continueButton() {
                 document.getElementById('div1').style.display = 'block';
                 document.getElementById('div2').style.display = 'block';
                 document.getElementById('displayhelp').style.display = 'block';
+                document.getElementById('spiderman').style.display = 'block';
         
                 // Step 7: Hide the closed city image
                 const closedCityIndex = selected_middle_image_index //this is the index of the chosen hidden city
@@ -294,8 +265,8 @@ function continueButton() {
             detourDiv.appendChild(continueBtn);
         
             // Place above the task
-            const phase3Body = document.getElementById('Phase3Body');
-            phase3Body.parentNode.insertBefore(detourDiv, phase3Body);
+            const spidermanBody = document.getElementById('spiderman');
+            spidermanBody.parentNode.insertBefore(detourDiv, spidermanBody);
         
             return;
         }
@@ -496,17 +467,13 @@ function drawLine(img1,img2) {
     specificlinenew=Object.assign({[linecounter]:{location: { x1: x1, y1: y1, x2: x2, y2: y2 },name:[img1.id+img2.id]}})  // change at some point to show div
     specificline=mergeObjects(specificline,specificlinenew)
     linecounter=linecounter+1
-    if(leftAndRightAreConnected()){
-        continueButton()
-    }
+    continueButton()
 }
 
 
 
 function dragLine(img1) {
-    if(leftAndRightAreConnected()){
-        continueButton()
-    }
+    continueButton()
     // Create a new canvas element
     for (i=0;i<=linecounter;i++){
         if (specificline[i]){
@@ -874,9 +841,7 @@ function returndrag(elmnt){
             }
         }
     }
-    if(leftAndRightAreConnected()){
-        continueButton()
-    }
+    continueButton()
 }
 function removeObjectByKey(obj, key) {
     if (obj.hasOwnProperty(key)) {

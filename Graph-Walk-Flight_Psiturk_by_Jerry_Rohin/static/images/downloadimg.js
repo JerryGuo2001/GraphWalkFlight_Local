@@ -10,21 +10,21 @@ function shuffle(array) {
 generated_stimuli = []
 let unshuffled_imageList,unshuffled_cityNameList,prefix
 
-let fictionalorreal='nope'
+let fictionalorreal='real'
 if (fictionalorreal=='real'){
   noprefix_imageList=['westpalmbeach.png','newhope.png','boulder.png','peoria.png','gatlinburg.png','shreveport.png','hotsprings.png','carmel.png','huntsville.png','racine.png','leesburg.png','cornwall.png','hanover.png'] // change last one
 
   unshuffled_imageList = noprefix_imageList.map(filename => {
-  prefix = Math.random() < 0.5 ? 'US_Cities_List/mm_' : 'US_Cities_List/nat_';
+  prefix = 'US_Cities_List/'
   return prefix + filename;
   });
 
   unshuffled_cityNameList=['West Palm Beach','New Hope','Boulder','Peoria','Gatlinburg','Shreveport','Hot Springs','Carmel','Huntsville','Racine','Leesburg','Cornwall','Hanover']
 }else{
-  noprefix_imageList=['barrel.png', 'basket.png', 'camera.png', 'dustpan.png', 'globe.png', 'gong.png', 'hat.png', 'jukebox.png', 'paint.png', 'snail.png', 'soldier.png', 'teeth.png', 'wheelchair.png']// change last one
+  noprefix_imageList=['westpalmbeach.png','newhope.png','boulder.png','peoria.png','gatlinburg.png','shreveport.png','hotsprings.png','carmel.png','huntsville.png','racine.png','leesburg.png','cornwall.png','hanover.png'] // change last one
 
   unshuffled_imageList = noprefix_imageList.map(filename => {
-  prefix = Math.random() < 0.5 ? 'US_Cities_List/' : 'US_Cities_List/';
+  prefix = 'US_Cities_List/';
   return prefix+filename;
   });
 
@@ -37,7 +37,9 @@ city_arr.push(i)
 }
 let list_images = []
 let cityNameList = []
-shuffle(city_arr)
+if (fictionalorreal!='real'){
+  shuffle(city_arr)
+}
 for (let i = 0;i<unshuffled_cityNameList.length;i++){
 list_images.push('../static/images/' + unshuffled_imageList[city_arr[i]])
 cityNameList.push(unshuffled_cityNameList[city_arr[i]])

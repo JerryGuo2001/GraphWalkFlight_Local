@@ -4,9 +4,9 @@ sequence = "blocked"
 //debug moode on/off
 debugmode= false
 if (debugmode==true){
-  n_learning_trial=5 //This determine the number of learning trial you want in total
-  n_direct_trial=5 //how many direct trial you want
-  n_shortest_trial=5 //how many shortest path you want
+  n_learning_trial=10 //This determine the number of learning trial you want in total
+  n_direct_trial=10 //how many direct trial you want
+  n_shortest_trial=10 //how many shortest path you want
   n_goaldir_trial=3 //how many goal directed planning you want
 }else{
   n_learning_trial=128 //This determine the number of learning trial you want in total
@@ -15,9 +15,12 @@ if (debugmode==true){
   n_goaldir_trial=33 //how many goal directed planning you want
 }
 
+const num_breaks = 1
+const breaks = [];
+
 //warningpage
 warning=0 //this is to start the counter of total warning
-warning_1="<div style='margin-left:200px ;margin-right: 200px ;text-justify: auto'><p style ='font-size: 30px;line-height:1.5;color:red'>Warning, you are missing too many trials, make sure to press the key '1' when you see a blue cross flash and '2' when you see a green one. If you keep missing trials you will be disqualified.</p>",
+warning_1="<div style='margin-left:200px ;margin-right: 200px ;text-justify: auto'><p style ='font-size: 30px;line-height:1.5;color:red'>Warning, you are missing too many trials, make sure to press the key '1' when you see a blue cross flash and '2' when you see a yellow one. If you keep missing trials you will be disqualified.</p>",
 checkfail=0 //this is to start the attentioncheck
 checkthreshold=2 //this is to add the threshold for attentioncheck
 
@@ -54,15 +57,22 @@ instruct_4="<div style='margin-left:200px ;margin-right: 200px ;text-justify: au
 instruct_5="<div style='margin-left:200px ;margin-right: 200px ;text-justify: auto'><p style ='font-size: 30px;line-height:1.5'>You will see a series of these city-pairs and will try to learn as many of them as possible to best advise your future clients for travel. After studying the information, you will be asked to help your clients book travel to various destinations via AerBorn Airlines.</p><br>",
 instruct_6="<div style='margin-left:200px ;margin-right: 200px ;text-justify: auto'><p style ='font-size: 30px;line-height:1.5'>A good strategy to help you remember the direct flights is to use the images and try to come up with a story or image that connects the two pictures. For example, if you saw the following flight path:</p><br /><img src= '../static/images/losangeles.png' width='150' height='150' style='margin-right:50px'></img><img src= '../static/images/arrows.png' width='150' height='150'></img><img src= '../static/images/NewYorkCity.png' width='150' height='150' style='margin-left:50px'></img><p></p><br /><p style ='font-size: 30px;line-height:1.5'>You may create a story of eating a New York style pizza while walking down the Hollywood Walk of Fame. Or you might create a mental image of overlaying pizza slices along the points of the star. These memory strategies (creating a story or visualization) can help you remember the flight between Los Angeles and New York.</p><br>",
 instruct_7="<div style='margin-left:200px ;margin-right: 200px ;text-justify: auto'><p style ='font-size: 30px;line-height:1.5'>Let's practice this strategy, which you will use throughout the experiment. For each flight path, try to come up with an image or story in your head that connects the two cities. The story or image does not have to make sense, the goal is to try to help you remember the flight paths.</p><br>",
-instruct_8="<div style='margin-left:200px ;margin-right: 200px ;text-justify: auto'><img src= '../static/images/story_example_01.png' width='200' height='200' style='margin-right:50px'></img><img src= '../static/images/arrows.png' width='200' height='200'></img><img src= '../static/images/story_example_02.png' width='200' height='200' style='margin-left:50px'></img><p style ='font-size: 30px;line-height:1.5'>Were you able to come up with a story or image linking these two cities? <br>For example, you could imagine the cardinal using the umbrella to get out of the rain</p><br /><p style ='font-size: 30px;line-height:1.5'></p><br>",
-instruct_9="<div style='margin-left:200px ;margin-right: 200px ;text-justify: auto'><img src= '../static/images/story_example_03.png' width='200' height='200' style='margin-right:50px'></img><img src= '../static/images/arrows.png' width='200' height='200'></img><img src= '../static/images/story_example_04.png' width='200' height='200' style='margin-left:50px'></img><p style ='font-size: 30px;line-height:1.5'>Were you able to come up with a story or image linking these two cities? <br>For example, you could imagine the tiger getting its own star on Hollywood Blvd.</p><br /><p style ='font-size: 30px;line-height:1.5'></p><br>",
-instruct_10="<div style='margin-left:200px ;margin-right: 200px ;text-justify: auto'><img src= '../static/images/story_example_05.png' width='200' height='200' style='margin-right:50px'></img><img src= '../static/images/arrows.png' width='200' height='200'></img><img src= '../static/images/story_example_06.png' width='200' height='200' style='margin-left:50px'></img><p style ='font-size: 30px;line-height:1.5'>Were you able to come up with a story or image linking these two cities? <br>For example, you could imagine the cardinal building a nest inside the cowboy boots</p><br /><p style ='font-size: 30px;line-height:1.5'></p><br>",
-instruct_11="<div style='margin-left:200px ;margin-right: 200px ;text-justify: auto'><p style ='font-size: 30px;line-height:1.5'>While you are studying the flight paths, we will also ask you to do a simple color change task to make sure you are following instructions and paying attention to each trial.</p><br>",
-instruct_12="<div style='margin-left:200px ;margin-right: 200px ;text-justify: auto'><p style ='font-size: 30px;line-height:1.5'>While you are learning to remember the flight pairs, you will also see a cross on the center of your screen like the one below:</p><img src= '../static/images/isi.png' width='150' height='150'><p style ='font-size: 30px;line-height:1.5'>To make sure that you are paying attention on each trial, we will have you do a simple color detection task in addition to learning the cities. If the cross flashes <span style='color: blue;'>blue,</span> press the '1' key on your keyboard, if it flashes <span style='color: green;'>green,</span> press '2'.<br><br>Now we will do a short practice on these color changes. You will be unable to advance until you get enough of the color check trials correct.<br><br>",
 
+instructnames = ["instruct_1","instruct_2","instruct_3","instruct_4","instruct_5","instruct_6","instruct_7"]// IF you want to add or decrease number of page for instruct, just delete or add var name here.
+instruct={instruct_1,instruct_2,instruct_3,instruct_4,instruct_5,instruct_6,instruct_7} // IF you want to add or decrease number of page for instruct, just delete or add var here.
 
-instructnames = ["instruct_1","instruct_2","instruct_3","instruct_4","instruct_5","instruct_6","instruct_7","instruct_8","instruct_9","instruct_10","instruct_11","instruct_12"]// IF you want to add or decrease number of page for instruct, just delete or add var name here.
-instruct={instruct_1,instruct_2,instruct_3,instruct_4,instruct_5,instruct_6,instruct_7,instruct_8,instruct_9,instruct_10,instruct_11,instruct_12} // IF you want to add or decrease number of page for instruct, just delete or add var here.
+instruct_prac_1="<div style='margin-left:200px ;margin-right: 200px ;text-justify: auto'><p style ='font-size: 30px;line-height:1.5'>Were you able to come up with a story or image connecting these items?<br><br>Once you think of one, press next to continue.</p></div>",
+instruct_prac_2="<div style='margin-left:200px ;margin-right: 200px ;text-justify: auto'><p style ='font-size: 30px;line-height:1.5'>Great! Please continue to come up with a story or image for each trial.<br><br>For example, you could imagine the cardinal using the umbrella to get out of the rain</p><br /><p style ='font-size: 30px;line-height:1.5'></p><br>",
+
+instructprac1names = ["instruct_prac_1","instruct_prac_2"]// IF you want to add or decrease number of page for instruct, just delete or add var name here.
+instructprac1={instruct_prac_1,instruct_prac_2} // IF you want to add or decrease number of page for instruct, just delete or add var here.
+
+instruct_prac2_1="<div style='margin-left:200px ;margin-right: 200px ;text-justify: auto'><p style ='font-size: 30px;line-height:1.5'>Were you able to come up with a story or image connecting these items?<br><br>Once you think of one, press next to continue.</p><br>",
+instruct_prac2_2="<div style='margin-left:200px ;margin-right: 200px ;text-justify: auto'><p style ='font-size: 30px;line-height:1.5'>Great! Please continue to come up with a story or image for each trial.<br><br>For example, you could imagine the tiger getting its own star on Hollywood Blvd.</p><br /><p style ='font-size: 30px;line-height:1.5'></p></div>",
+instruct_prac2_3="<div style='margin-left:200px ;margin-right: 200px ;text-justify: auto'><p style ='font-size: 30px;line-height:1.5'>While you are learning to remember the flight pairs, you will also see a cross on the center of your screen like the one below:</p><img src= '../static/images/isi.png' width='150' height='150'><p style ='font-size: 30px;line-height:1.5'>To make sure that you are paying attention on each trial, we will have you do a simple color detection task in addition to learning the cities. If the cross flashes <span style='color: blue;text-shadow: -1px -1px 0 #000,1px -1px 0 #000,-1px  1px 0 #000,1px  1px 0 #000'>blue,</span> press the '1' key on your keyboard, if it flashes <span style='color: yellow;text-shadow: -1px -1px 0 #000,1px -1px 0 #000,-1px  1px 0 #000,1px  1px 0 #000'>yellow,</span> press '2'.<br><br>Now we will do a short practice on these color changes. You will be unable to advance until you get enough of the color check trials correct.<br><br>",
+
+instructprac2names = ["instruct_prac2_1","instruct_prac2_2","instruct_prac2_3"]// IF you want to add or decrease number of page for instruct, just delete or add var name here.
+instructprac2={instruct_prac2_1,instruct_prac2_2,instruct_prac2_3} // IF you want to add or decrease number of page for instruct, just delete or add var here.
 
 // instruct_dir_1 is for post test learning phase
 instruct_dir_1="<div style='margin-left:200px ;margin-right: 200px ;text-justify: auto'><p style ='font-size: 30px;line-height:1.5'>Now that you have studied the various flights offered by AerBorn Airlines, you will be tested on your knowledge of these direct paths. On each trial, you will see a location and will have to select which city you can fly nonstop to via AerBorn Airlines.</p><br>",
@@ -73,8 +83,8 @@ dir_instruct={instruct_dir_1,instruct_dir_2} //same for above
 //Text for shortest path instruction
 instruct_short_1="<div style='margin-left:200px ;margin-right: 200px ;text-justify: auto'><p style ='font-size: 30px;line-height:1.5'>In this next portion, you are meeting a series of clients that want to travel using AerBorn Airlines. They are deciding between two destinations to travel to, and they both require layovers to get there. You are tasked with choosing the city that the client can reach in the fewest number of layovers according to the previous flight paths you studied.</p><br />",
 instruct_short_2="<div style='margin-left:200px ;margin-right: 200px ;text-justify: auto'><p style ='font-size: 30px;line-height:1.5'>For example, imagine you studied the following flight paths in the earlier phase: </p><br /><img src= '../static/images/Shortest.png' width='750' height='300'></img><p></p><br />",
-instruct_short_3="<div style='margin-left:200px ;margin-right: 200px ;text-justify: auto'><p style ='font-size: 30px;line-height:1.5'>In this phase, you will see 3 locations you previously studied:</p><img src= '../static/images/shortestIMG.png' width='500' height='300'></img></p><br />"
-instruct_short_4="<div style='margin-left:200px ;margin-right: 200px ;text-justify: auto'><p style ='font-size: 30px;line-height:1.5'>This client will be leaving from the top city (New York City), and wishes to know which out of the two bottom destinations (St. Louis or Detroit) requires fewer layovers.</p><img src= '../static/images/shortestarrow.png' width='600' height='400'<br />"
+instruct_short_3="<div style='margin-left:200px ;margin-right: 200px ;text-justify: auto'><p style ='font-size: 30px;line-height:1.5'>In this phase, you will see 3 locations you previously studied:</p><img src= '../static/images/shortestIMG.png' width='500' height='500'></img></p><br />"
+instruct_short_4="<div style='margin-left:200px ;margin-right: 200px ;text-justify: auto'><p style ='font-size: 30px;line-height:1.5'>This client will be leaving from the top city (New York City), and wishes to know which out of the two bottom destinations (St. Louis or Detroit) requires fewer layovers.</p><img src= '../static/images/shortestarrow.png' width='500' height='500'<br />"
 instruct_short_5="<div style='margin-left:150px ;margin-right: 200px ;text-justify: auto'><img src= '../static/images/short1.png' width='1200' height='700'></div>"
 instruct_short_6="<div style='margin-left:150px ;margin-right: 200px ;text-justify: auto'><img src= '../static/images/short2.png' width='1200' height='700'></div>"
 instruct_short_7="<div style='margin-left:150px ;margin-right: 200px ;text-justify: auto'><img src= '../static/images/short3.png' width='1200' height='700'></div>"
@@ -97,7 +107,7 @@ mem_instructnames = ["instruct_mem_1","instruct_mem_2","instruct_mem_3","instruc
 mem_instruct={instruct_mem_1,instruct_mem_2,instruct_mem_3,instruct_mem_4,instruct_mem_5,instruct_mem_6} 
 
 //Graph Reconstruction
-instruct_graph_1="<div style='margin-left:200px ;margin-right: 200px ;text-justify: auto'><p style ='font-size: 30px;line-height:1.5'>In this part of the task, you will be shown all the images that you have studied earlier. There will NOT be any novel images that you have not already seen.<br>We will ask you to arrange the images on the screen in a way you think is best reflective of the pair arrangement you saw in the learning part (remember that the same object can appear in multiple pairs). You can move the images on the screen by clicking on them with your mouse, one at the time, and dragging them to whatever you think is a suitable position within the white rectangular area. Make sure you don't place any images on top of each other (no overlap). </p><br><p style= 'font-size:25px;margin-top:100px'></p><br>",
+instruct_graph_1="<div style='margin-left:200px ;margin-right: 200px ;text-justify: auto'><p style ='font-size: 30px;line-height:1.5'>In this part of the task, you will be shown all the images that you have studied earlier. There will NOT be any novel images that you have not already seen.<br><br>We will ask you to arrange the images on the screen in a way you think is best reflective of the pair arrangement you saw in the learning part (remember that the same object can appear in multiple pairs). You can move the images on the screen by clicking on them with your mouse, one at the time, and dragging them to whatever you think is a suitable position within the white rectangular area. Make sure you don't place any images on top of each other (no overlap). </p><br><p style= 'font-size:25px;margin-top:100px'></p><br>",
 instruct_graph_2="<div style='margin-left:200px ;margin-right: 200px ;text-justify: auto'><p style ='font-size: 30px;line-height:1.5'>After placing the images on the screen, <strong>you will connect the images based on whether or not they were directly paired together during the learning phase.</strong> You can link the images together by first clicking on one image, followed by the image you want to connect it to. You don't need to drag/draw the line, just click on the two images you'd like to connect - and the line will appear. Note that if you want to make a new connection using the same object you had connected previously, you must click on that object again in order to draw a new line to another object. If you would like to remove a connection, use the same process&mdash;click one image followed by the image it is linked to, and the existing line will be removed.</p><p style= 'font-size:25px;margin-top:100px'></p><br>",
 instruct_graph_3="<div style='margin-left:200px ;margin-right: 200px ;text-justify: auto'><p style ='font-size: 30px;line-height:1.5'>When you are satisfied with the position of all the images and their connections, click the 'Submit' button to finish the task!</p><p style= 'font-size:25px;margin-top:100px'></p>",
 graph_instructnames = ["instruct_graph_1","instruct_graph_2","instruct_graph_3"]
@@ -1252,7 +1262,7 @@ for (let i = 0; i<allSelectedPairs.length; i++){
 }
 
 //color for the plus sign
-atcheckcolor=['blue','green']
+atcheckcolor=['blue','yellow']
 
 //determinant for the time for the flash color
 function colorStart(){

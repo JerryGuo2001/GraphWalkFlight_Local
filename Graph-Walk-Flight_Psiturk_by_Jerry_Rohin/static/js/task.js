@@ -1,9 +1,13 @@
 var debug_mode = 0; // debug mode determines how long the blocks are, 5 sec in debug mode, 5 minutes in actual experiment
 //var data_save_method = 'csv_server_py';
 var data_save_method = 'csv_client';
-
+var part2_sfa= NaN
 let save_final_deter;
-
+var direct_warning = 0
+var short_warning = 0
+var quickKP = 0;
+var infKP = 0;
+var timer = 0;
 // Will be set to true when experiment is exiting fullscreen normally, to prevent above end experiment code
 var normal_exit = false;
 var window_height = window.screen.height;
@@ -66,10 +70,23 @@ var welcome = {
     data.stimulus = "intro"
     data.cities = `${cityNameList.join("; ")}`;
     data.city_images = `${image_city_names.join("; ")}`
-    
   }
 }
 //welcome page end
+
+var too_quick={
+  type: 'html-keyboard-response',
+  stimulus: '<h1 style="color: red;font-size: 50px">Your response was too quick. Please take your time to carefully consider your answer before responding.</h1>' +
+            '<p style="color: red;font-size: 50px">The experiment will continue in 10 seconds.</p>',
+  choices: jsPsych.NO_KEYS, // Prevent responses
+  trial_duration: 10000, // Stay on screen for 10 seconds
+  on_finish: function(data) {
+    data.trial_type='slowdown_page'
+    data.stimulus='too_quick'
+    quickKP +=1
+  }
+}
+
 
 //Fullscreen start
 var enterFullscreen = {
@@ -255,7 +272,7 @@ var instruct_lastonebefore_practice={
   stimulus: `
   <div style='margin-left:200px ;margin-right: 200px ;text-justify: auto'><p style ='font-size: 30px;line-height:1.5'>
   Now we will begin showing you flights to study. Make sure to remember the two cities as a pair, and additionally respond '1' when the cross flashes blue,
-  and '2' when it flashes green. Please respond as quickly and as accurately as possible.<p style= 'font-size:25px;margin-top:100px'>[press the spacebar to continue]</p>
+  and '2' when it flashes yellow. Please respond as quickly and as accurately as possible.<p style= 'font-size:25px;margin-top:100px'>[press the spacebar to continue]</p>
    `,
   on_finish: function (data) {
     data.trial_type = 'last_instruct';
@@ -273,7 +290,7 @@ var learn_phase_color = {}
 
 var ac_colorprepare=colorStart()
 var ac_colorstop=colorStop(ac_colorprepare)
-var ac_colorlist=['blue','green','green','blue','green','green','blue','green','blue','blue']
+var ac_colorlist=['blue','yellow','yellow','blue','yellow','yellow','blue','yellow','blue','blue']
 var ac_colornumber=0
 var total_ac = 0
 var correct_ac = 0
@@ -306,10 +323,11 @@ csfa=[]
 
 //attention check color cross
 function create_color_list(color) {
-  return parse("<p style='position:absolute;top: 50%;right: 50%;transform: translate(50%, -50%);font-size: 125px;color: %s;'>\u002B</p>"
-  ,color)
+  return parse("<p style='position:absolute;top:50%;right:50%;transform:translate(50%, -50%);font-size:125px;color:" + color + ";text-shadow:\
+  -2px -2px 0 #000, 0 -2px 0 #000, 2px -2px 0 #000,\
+  -2px 0 0 #000, 2px 0 0 #000,\
+  -2px 2px 0 #000, 0 2px 0 #000, 2px 2px 0 #000;'>+</p>");
 }
-
 prac_attentioncheck_colorchange={
   type: 'html-keyboard-responsefl',
   choices: ['1','2'],
@@ -346,7 +364,7 @@ prac_attentioncheck_thethird={
         jsPsych.addNodeToEndOfTimeline({
           timeline: [prac_attentioncheck_blackplus],
         }, jsPsych.resumeExperiment)
-      }else if (csfa==50&&ac_colorlist[ac_colornumber]=='green'){
+      }else if (csfa==50&&ac_colorlist[ac_colornumber]=='yellow'){
         correct_ac += 1
         jsPsych.addNodeToEndOfTimeline({
           timeline: [prac_attentioncheck_blackplus],
@@ -356,7 +374,7 @@ prac_attentioncheck_thethird={
         jsPsych.addNodeToEndOfTimeline({
           timeline: [prac_attentioncheck_blackplus],
         }, jsPsych.resumeExperiment)
-      }else if (data.key_press==50&&ac_colorlist[ac_colornumber]=='green'){
+      }else if (data.key_press==50&&ac_colorlist[ac_colornumber]=='yellow'){
         correct_ac += 1
         jsPsych.addNodeToEndOfTimeline({
           timeline: [prac_attentioncheck_blackplus],
@@ -367,7 +385,7 @@ prac_attentioncheck_thethird={
         }, jsPsych.resumeExperiment)
       }
     }else{
-      if (csfa==49&&ac_colorlist[ac_colornumber]=='blue' || csfa==50&&ac_colorlist[ac_colornumber]=='green' || data.key_press==49&&ac_colorlist[ac_colornumber]=='blue' || data.key_press==49&&ac_colorlist[ac_colornumber]=='green') {
+      if (csfa==49&&ac_colorlist[ac_colornumber]=='blue' || csfa==50&&ac_colorlist[ac_colornumber]=='yellow' || data.key_press==49&&ac_colorlist[ac_colornumber]=='blue' || data.key_press==49&&ac_colorlist[ac_colornumber]=='yellow') {
         correct_ac += 1
       }
       total_ac += 1
@@ -464,16 +482,48 @@ function getACvalues() {
 helpofattentioncheck={
   type: 'html-keyboard-response',
   choices: ['spacebar'],
-  stimulus: "<div style='margin-left:200px ;margin-right: 200px ;text-justify: auto'><p style ='font-size: 30px;line-height:1.5'>It seems you got one wrong. Remember, for the cross below:</p><img src= '../static/images/isi.png' width='150' height='150'><p style ='font-size: 30px;line-height:1.5'>If the cross flashes <span style='color: blue;'>blue,</span> press the '1' key on your keyboard, if it flashes <span style='color: green;'>green,</span> press '2'.<p style= 'font-size:25px;margin-top:100px'>[press the spacebar to continue]</p>",
+  stimulus: "<div style='margin-left:200px ;margin-right: 200px ;text-justify: auto'><p style ='font-size: 30px;line-height:1.5'>It seems you got one wrong. Remember, for the cross below:</p><img src= '../static/images/isi.png' width='150' height='150'><p style ='font-size: 30px;line-height:1.5'>If the cross flashes <span style='color: blue; text-shadow: -1px -1px 0 #000,1px -1px 0 #000,-1px  1px 0 #000,1px  1px 0 #000'>blue,</span> press the '1' key on your keyboard, if it flashes <span style='color: yellow;text-shadow: -1px -1px 0 #000,1px -1px 0 #000,-1px  1px 0 #000,1px  1px 0 #000'>yellow,</span> press '2'.<p style= 'font-size:25px;margin-top:100px'>[press the spacebar to continue]</p>",
   on_finish: function (data) {
     data.trial_type = 'attentioncheck_help';
     data.stimulus='instruct'
   }
 }
 
-//practice attention check end
-let instruction_number = 1
-intro_learn=create_instruct(instruct,instructnames,instruction_number,prac_attentioncheck_blackplus,a='')
+// Learn prac 1
+var prac1_num=1
+var intro_prac1_learn=create_instruct(instructprac1,instructprac1names,prac1_num,learn_prac2_phase,a='prac_')
+var prac2_num=1
+
+var learn_prac1_phase = {
+  type: 'html-keyboard-response',
+  choices: jsPsych.NO_KEYS,
+  response_ends_trial: false,
+  stimulus:create_learning_trial(['../static/images/story_example_01.png'],['../static/images/story_example_02.png'],0),
+  stimulus_duration:3000,
+  trial_duration:3000,
+  on_load: function(){
+    timeline.push(intro_prac1_learn)  
+  },
+  on_finish: function(data) {
+    data.trial_type = 'learn_prac_1';
+    data.stimulus='lean_prac_1'
+    attentioncheck(intro_prac1_learn,a=1,1,0,intro_prac1_learn)
+  }
+}
+
+var learn_prac2_phase = {
+  type: 'html-keyboard-response',
+  choices: jsPsych.NO_KEYS,
+  response_ends_trial: false,
+  stimulus:create_learning_trial(['../static/images/LosAngeles.png'],['../static/images/story_example_04.png'],0),
+  stimulus_duration:3000,
+  trial_duration:3000,
+  on_finish: function(data) {
+    data.trial_type = 'learn_prac_2';
+    data.stimulus='lean_prac_2'
+    attentioncheck(intro_prac2_learn,a=1,1,0,intro_prac2_learn)
+  }
+}
 
 
 function learnphaseone(){
@@ -652,6 +702,64 @@ function learnphaseone(){
     }
   }
  
+  learn_phase_break = {
+    type: 'html-keyboard-response',
+        stimulus:  `
+          <div id="break-container" style="font-size: 24px; max-width: 800px; margin: auto; text-align: center;">
+            <p><strong>Please take a short (up to 60 seconds) break.</strong></p>
+            <p>Use this time to stretch and reset. After the break, you will continue to learn more flights.</p>
+            <p>If you would like to resume without a break, press the <strong>spacebar</strong>.</p>
+            <p>Otherwise, the screen will advance automatically after 60 seconds.</p><br><br><br>
+            <p><strong>Time remaining: <span id="countdown">60</span> seconds</strong></p>
+          </div>
+        `,
+        choices: ['spacebar'],
+        trial_duration: 60000, // 60 seconds
+        response_ends_trial: true,
+    on_load: function() {
+      let countdown = 60;
+      const countdownEl = document.getElementById('countdown');
+      const interval = setInterval(() => {
+        countdown--;
+        if (countdownEl) countdownEl.textContent = countdown;
+        if (countdown <= 0) clearInterval(interval);
+      }, 1000);
+    },
+    on_finish: function(data) {
+      data.stimulus='learn_break'
+      data.trial_type = 'learn_break';
+    }
+  }
+
+  learn_phase_end_break = {
+    type: 'html-keyboard-response',
+        stimulus: `
+          <div style="font-size: 24px; max-width: 800px; margin: auto; text-align: center;">
+            <p><strong>Thank you for completing the first part of your job. Please take a short (up to 60 seconds) break.</strong></p>
+            <p>Use this time to stretch and reset. After the break, you will continue to the next part of your job.</p>
+            <p>If you would like to resume without a break, press the <strong>spacebar</strong>.</p>
+            <p>Otherwise, the screen will advance automatically after 60 seconds.</p><br><br><br>
+            <p><strong>Time remaining: <span id="countdown2">60</span> seconds</strong></p>
+          </div>
+        `,
+        choices: ['spacebar'],
+        trial_duration: 60000, // 60 seconds
+        response_ends_trial: true,
+    on_load: function() {
+      let countdown = 60;
+      const countdownEl = document.getElementById('countdown2');
+      const interval = setInterval(() => {
+        countdown--;
+        if (countdownEl) countdownEl.textContent = countdown;
+        if (countdown <= 0) clearInterval(interval);
+      }, 1000);
+    },
+    on_finish: function(data) {
+      data.stimulus='learn_break'
+      data.trial_type = 'learn_break';
+    }
+  }
+
   // timeline.push(learn_phase)
   // timeline.push(learn_phase_color,thecrossant,thecrossant_black,thecrossant_break)
 }
@@ -735,6 +843,34 @@ var directmemory_phase = {
       data.missedtrial = 'closer'
       data.weighted_accuracy = 0.5
     }
+
+    infKP += 1
+    if (infKP==1){
+      // Start the timer
+      timer = 0;
+      infINT = setInterval(() => {
+          timer++;;
+      }, 1000);
+    }
+    if (infKP == 4 && timer < 4) {
+      clearInterval(infINT)
+      jsPsych.addNodeToEndOfTimeline({
+      timeline: [too_quick],
+      }, jsPsych.resumeExperiment)
+      infKP = -1
+      timer = 0;
+      data.tooquick = 1
+    } else if ((infKP <= 4 && timer >= 4)){
+      infKP = 0
+      clearInterval(infINT);
+      timer = 0
+    }
+
+    if (data.rt < 300) {
+      jsPsych.addNodeToEndOfTimeline({
+        timeline: [too_quick],
+        }, jsPsych.resumeExperiment)
+    }
     
     let directsum = 0;
     directcorrectness.forEach(function(value) {
@@ -742,12 +878,17 @@ var directmemory_phase = {
     });
 
     data.cumulative_accuracy = directsum / directcorrectness.length;
-    sfa=data.key_press,
-    curr_direct_trial=curr_direct_trial+1,
+    part2_sfa=data.key_press
+
+    if (!part2_sfa){
+      direct_warning +=1
+    }
+    curr_direct_trial=curr_direct_trial+1
     directmemory_phase.stimulus=create_direct_trial(direct_base64_up,direct_base64_left,direct_base64_mid,direct_base64_right,curr_direct_trial)
-    attentioncheck(directmemory_phase,a=1,curr_direct_trial,n_direct_trial,intro_short)
+    attentioncheck(directmemory_phase,part2_sfa,curr_direct_trial,n_direct_trial,intro_short,phase='direct')
   }
 }
+
 //Direct Memory test end
 
 var directmem_break= {
@@ -834,16 +975,48 @@ var shortestpath_phase = {
       data.specific_pairs = 'Two Edge Six Edge'
     }
 
+
+    infKP += 1
+    if (infKP==1){
+      // Start the timer
+      timer = 0;
+      infINT = setInterval(() => {
+          timer++;;
+      }, 1000);
+    }
+    if (infKP == 4 && timer < 4) {
+      clearInterval(infINT)
+      jsPsych.addNodeToEndOfTimeline({
+      timeline: [too_quick],
+      }, jsPsych.resumeExperiment)
+      infKP = -1
+      timer = 0;
+      data.tooquick = 1
+    } else if ((infKP <= 4 && timer >= 4)){
+      infKP = 0
+      clearInterval(infINT);
+      timer = 0
+    }
+
+    if (data.rt < 300) {
+      jsPsych.addNodeToEndOfTimeline({
+        timeline: [too_quick],
+        }, jsPsych.resumeExperiment)
+    }
+
     let sum = 0;
     correctness.forEach(function(value) {
       sum += value;
     });
     data.cumulative_accuracy = sum / correctness.length;
 
-    sfa=data.key_press,
-    curr_shortest_trial=curr_shortest_trial+1,
+    part2_sfa=data.key_press
+    if (!part2_sfa){
+      short_warning +=1
+    }
+    curr_shortest_trial=curr_shortest_trial+1
     shortestpath_phase.stimulus=create_shortestpath_trial(shortest_base64_up,shortest_base64_left,shortest_base64_right,curr_shortest_trial)
-    attentioncheck(shortestpath_phase,a=1,curr_shortest_trial,n_shortest_trial,intro_mem)
+    attentioncheck(shortestpath_phase,part2_sfa,curr_shortest_trial,n_shortest_trial,intro_mem,phase='short')
   }
 }
 //Shortest Path memory end
@@ -1007,9 +1180,9 @@ function createPhase3(numberoftrial){
           }
           gdp_init(),
           phase3[i+1].stimulus = `<div id='displayhelp' style='display:none'><p>Click and drag the locations to the gray box to make your flight plans
-          <br /> you can 'book' flights by clicking on the two cities in order <br> You can remove flights by clicking on a city and clicking the return arrow on the bottom right of the gray box <br> once you are finished, press the 'next client' button to book the next client</p></div><button id='batman' style='display: block;margin: 0 auto;padding: 10px 20px;background-color: #4CAF50;color: black;border: none;border-radius: 8px;font-size: 16px;cursor: pointer;box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);transition: background-color 0.3s ease;', onclick='initiatep3()'>Click to start</button><div id='spiderman' style='display: none;'><div id='Phase3Body'><br><div id='div2'  style='width: 700px; margin: 0 auto; position: relative; bottom: 10%; border: 1px solid #aaaaaa;'><img id='drag01' src='${generated_stimuli[0]['stimulus']}' alt='${generated_stimuli[0]['label']}' width='100' height='120' draggable='true' ondragstart='drag(event)'><img id='drag02' src='${generated_stimuli[1]['stimulus']}' alt='${generated_stimuli[1]['label']}' width='100' height='120' draggable='true' ondragstart='drag(event)'><img id='drag03' src='${generated_stimuli[2]['stimulus']}' alt='${generated_stimuli[2]['label']}' width='100' height='120' draggable='true' ondragstart='drag(event)'><img id='drag04' src='${generated_stimuli[3]['stimulus']}' alt='${generated_stimuli[3]['label']}' alt='Custer' width='100' height='120' draggable='true' ondragstart='drag(event)'>
+          <br /> you can 'book' flights by clicking on the two cities in order <br> You can remove flights by clicking on a city and clicking the return arrow on the bottom right of the gray box <br> once you are finished, press the 'next client' button to book the next client</p></div><button id='batman' style='display: block;margin: 0 auto;padding: 10px 20px;background-color: #4CAF50;color: black;border: none;border-radius: 8px;font-size: 16px;cursor: pointer;box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);transition: background-color 0.3s ease;', onclick='initiatep3()'>Click to start</button><div id='spiderman' style='display: none;'><button id="nextButton" style="display: block; margin: 20px auto; padding: 10px 20px; background-color: #4CAF50; color: black; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); transition: background-color 0.3s ease;">Submit</button><div id='Phase3Body'><br><div id='div2'  style='width: 700px; margin: 0 auto; position: relative; bottom: 10%; border: 1px solid #aaaaaa;'><img id='drag01' src='${generated_stimuli[0]['stimulus']}' alt='${generated_stimuli[0]['label']}' width='100' height='120' draggable='true' ondragstart='drag(event)'><img id='drag02' src='${generated_stimuli[1]['stimulus']}' alt='${generated_stimuli[1]['label']}' width='100' height='120' draggable='true' ondragstart='drag(event)'><img id='drag03' src='${generated_stimuli[2]['stimulus']}' alt='${generated_stimuli[2]['label']}' width='100' height='120' draggable='true' ondragstart='drag(event)'><img id='drag04' src='${generated_stimuli[3]['stimulus']}' alt='${generated_stimuli[3]['label']}' alt='Custer' width='100' height='120' draggable='true' ondragstart='drag(event)'>
             <img id='drag05' src='${generated_stimuli[4]['stimulus']}' alt='${generated_stimuli[4]['label']}' width='100' height='120' draggable='true' ondragstart='drag(event)'><img id='drag06' src='${generated_stimuli[5]['stimulus']}' alt='${generated_stimuli[5]['label']}' width='100' height='120' draggable='true' ondragstart='drag(event)'><img id='drag07' src='${generated_stimuli[6]['stimulus']}' alt='${generated_stimuli[6]['label']}' width='100' height='120' draggable='true' ondragstart='drag(event)'><img id='drag08' src='${generated_stimuli[7]['stimulus']}' alt='${generated_stimuli[7]['label']}' width='100' height='120' draggable='true' ondragstart='drag(event)'><img id='drag09' src='${generated_stimuli[8]['stimulus']}' alt='${generated_stimuli[8]['label']}' width='100' height='120' draggable='true' ondragstart='drag(event)'><img id='drag10' src='${generated_stimuli[9]['stimulus']}' alt='${generated_stimuli[9]['label']}' width='100' height='120' draggable='true' ondragstart='drag(event)'><img id='drag11' src='${generated_stimuli[10]['stimulus']}' alt='${generated_stimuli[10]['label']}' width='100' height='120' draggable='true' ondragstart='drag(event)'><img id='drag12' src='${generated_stimuli[11]['stimulus']}' alt='${generated_stimuli[11]['label']}' width='100' height='120' draggable='true' ondragstart='drag(event)'>
-             <img id='drag13' src='${generated_stimuli[12]['stimulus']}' alt='${generated_stimuli[12]['label']}' width='100' height='120' draggable='true' ondragstart='drag(event)'></div><div id='div1' style='width: 1200px; height: 400px; margin: 0 auto; position: relative; bottom: 10%; border: 1px solid #aaaaaa; background-color: lightgray;'ondrop='drop(event)' ondragover='allowDrop(event)'><div id='div3' style='width: 1200px; height: 400px; margin: 0 auto; position: relative; '></div><img id='imgL' style='position:relative;right:450px;bottom: 250px;border:2px solid blue' width='100' height='120'><img id='imgR' style='position:relative;left:450px;bottom: 250px;border:2px solid blue' width='100' height='120'><img id='return' src='../static/images/return.png' style='position: relative;left: 450px;bottom: 100px ;border: 2px solid black' width='50'height='50'><button id='nextButton' style='display: none;margin: 0 auto;padding: 10px 20px;background-color: #4CAF50;color: black;border: none;border-radius: 8px;font-size: 16px;cursor: pointer;box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);transition: background-color 0.3s ease;'>Submit</button></div></div></div>`
+             <img id='drag13' src='${generated_stimuli[12]['stimulus']}' alt='${generated_stimuli[12]['label']}' width='100' height='120' draggable='true' ondragstart='drag(event)'></div><div id='div1' style='width: 1200px; height: 400px; margin: 0 auto; position: relative; bottom: 10%; border: 1px solid #aaaaaa; background-color: lightgray;'ondrop='drop(event)' ondragover='allowDrop(event)'><div id='div3' style='width: 1200px; height: 400px; margin: 0 auto; position: relative; '></div><img id='imgL' style='position:relative;right:450px;bottom: 250px;border:2px solid blue' width='100' height='120'><img id='imgR' style='position:relative;left:450px;bottom: 250px;border:2px solid blue' width='100' height='120'><img id='return' src='../static/images/return.png' style='position: relative;left: 450px;bottom: 100px ;border: 2px solid black' width='50'height='50'></div></div></div>`
           ,        
           jsPsych.addNodeToEndOfTimeline({
             timeline: [phase3[i+1]],
@@ -1051,9 +1224,6 @@ function recon_createPhase3(numberoftrial){
         //     jsPsych.finishTrial(); // End trial on button click
         //   });
         // },
-        on_start:function(){
-          
-        },
         on_finish: function (data) {
           data.trial_type='Graph Reconstruction'
           data.linedress=''
@@ -1238,12 +1408,15 @@ var thank_you = {
   on_finish: function (data) {
     data.trial_type = 'thank_you';
     data.detectfocus = detectfocus;
-    save_data(true)
   }
 }
 
 
 //time line here
+  var prac1_num=1
+  var intro_prac1_learn=create_instruct(instructprac1,instructprac1names,prac1_num,learn_prac2_phase,a='prac_')
+  var prac2_num=1
+  var intro_prac2_learn=create_instruct(instructprac2,instructprac2names,prac2_num,prac_attentioncheck_blackplus,a='prac2_')
 
 
 waitUntilBase64Ready().then(() => {
@@ -1305,7 +1478,9 @@ waitUntilBase64Ready().then(() => {
 
 
   learnphaseone()
-
+  //instruction section
+  var instruction_number=1
+  var intro_learn=create_instruct(instruct,instructnames,instruction_number,learn_prac1_phase)
 
   //timeline
   timeline.push(welcome,enterFullscreen)
@@ -1317,14 +1492,14 @@ waitUntilBase64Ready().then(() => {
 
   shortestpath_phase.stimulus=create_shortestpath_trial(shortest_base64_up,shortest_base64_left,shortest_base64_right,curr_shortest_trial)
   phasethreeroom=[`<div id='displayhelp' style='display:none'><p>Click and drag the locations to the gray box to make your flight plans
-  <br /> you can 'book' flights by clicking on the two cities in order <br> You can remove flights by clicking on a city and clicking the return arrow on the bottom right of the gray box <br> once you are finished, press the 'next client' button to book the next client</p></div><button id='batman' style='display: block;margin: 0 auto;padding: 10px 20px;background-color: #4CAF50;color: black;border: none;border-radius: 8px;font-size: 16px;cursor: pointer;box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);transition: background-color 0.3s ease;', onclick='initiatep3()'>Click to start</button><div id='spiderman' style='display: none;'><div id='Phase3Body'><br><div id='div2'  style='width: 700px; margin: 0 auto; position: relative; bottom: 10%; border: 1px solid #aaaaaa;'><img id='drag01' src='${generated_stimuli[0]['stimulus']}' alt='${generated_stimuli[0]['label']}' width='100' height='120' draggable='true' ondragstart='drag(event)'><img id='drag02' src='${generated_stimuli[1]['stimulus']}' alt='${generated_stimuli[1]['label']}' width='100' height='120' draggable='true' ondragstart='drag(event)'><img id='drag03' src='${generated_stimuli[2]['stimulus']}' alt='${generated_stimuli[2]['label']}' width='100' height='120' draggable='true' ondragstart='drag(event)'><img id='drag04' src='${generated_stimuli[3]['stimulus']}' alt='${generated_stimuli[3]['label']}' alt='Custer' width='100' height='120' draggable='true' ondragstart='drag(event)'>
+  <br /> you can 'book' flights by clicking on the two cities in order <br> You can remove flights by clicking on a city and clicking the return arrow on the bottom right of the gray box <br> once you are finished, press the 'next client' button to book the next client</p></div><button id='batman' style='display: block;margin: 0 auto;padding: 10px 20px;background-color: #4CAF50;color: black;border: none;border-radius: 8px;font-size: 16px;cursor: pointer;box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);transition: background-color 0.3s ease;', onclick='initiatep3()'>Click to start</button><div id='spiderman' style='display: none;'><div id='Phase3Body'><button id="nextButton" style="display: block; margin: 20px auto; padding: 10px 20px; background-color: #4CAF50; color: black; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); transition: background-color 0.3s ease;">Submit</button><br><div id='div2'  style='width: 700px; margin: 0 auto; position: relative; bottom: 10%; border: 1px solid #aaaaaa;'><img id='drag01' src='${generated_stimuli[0]['stimulus']}' alt='${generated_stimuli[0]['label']}' width='100' height='120' draggable='true' ondragstart='drag(event)'><img id='drag02' src='${generated_stimuli[1]['stimulus']}' alt='${generated_stimuli[1]['label']}' width='100' height='120' draggable='true' ondragstart='drag(event)'><img id='drag03' src='${generated_stimuli[2]['stimulus']}' alt='${generated_stimuli[2]['label']}' width='100' height='120' draggable='true' ondragstart='drag(event)'><img id='drag04' src='${generated_stimuli[3]['stimulus']}' alt='${generated_stimuli[3]['label']}' alt='Custer' width='100' height='120' draggable='true' ondragstart='drag(event)'>
   <img id='drag05' src='${generated_stimuli[4]['stimulus']}' alt='${generated_stimuli[4]['label']}' width='100' height='120' draggable='true' ondragstart='drag(event)'><img id='drag06' src='${generated_stimuli[5]['stimulus']}' alt='${generated_stimuli[5]['label']}' width='100' height='120' draggable='true' ondragstart='drag(event)'><img id='drag07' src='${generated_stimuli[6]['stimulus']}' alt='${generated_stimuli[6]['label']}' width='100' height='120' draggable='true' ondragstart='drag(event)'><img id='drag08' src='${generated_stimuli[7]['stimulus']}' alt='${generated_stimuli[7]['label']}' width='100' height='120' draggable='true' ondragstart='drag(event)'><img id='drag09' src='${generated_stimuli[8]['stimulus']}' alt='${generated_stimuli[8]['label']}' width='100' height='120' draggable='true' ondragstart='drag(event)'><img id='drag10' src='${generated_stimuli[9]['stimulus']}' alt='${generated_stimuli[9]['label']}' width='100' height='120' draggable='true' ondragstart='drag(event)'><img id='drag11' src='${generated_stimuli[10]['stimulus']}' alt='${generated_stimuli[10]['label']}' width='100' height='120' draggable='true' ondragstart='drag(event)'><img id='drag12' src='${generated_stimuli[11]['stimulus']}' alt='${generated_stimuli[11]['label']}' width='100' height='120' draggable='true' ondragstart='drag(event)'>
-  <img id='drag13' src='${generated_stimuli[12]['stimulus']}' alt='${generated_stimuli[12]['label']}' width='100' height='120' draggable='true' ondragstart='drag(event)'></div><div id='div1' style='width: 1200px; height: 400px; margin: 0 auto; position: relative; bottom: 10%; border: 1px solid #aaaaaa; background-color: lightgray;'ondrop='drop(event)' ondragover='allowDrop(event)'><div id='div3' style='width: 1200px; height: 400px; margin: 0 auto; position: relative; '></div><img id='imgL' style='position:relative;right:450px;bottom: 250px;border:2px solid blue' width='100' height='120'><img id='imgR' style='position:relative;left:450px;bottom: 250px;border:2px solid blue' width='100' height='120'><img id='return' src='../static/images/return.png' style='position: relative;left: 450px;bottom: 100px ;border: 2px solid black' width='50'height='50'><button id='nextButton' style='display: none;margin: 0 auto;padding: 10px 20px;background-color: #4CAF50;color: black;border: none;border-radius: 8px;font-size: 16px;cursor: pointer;box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);transition: background-color 0.3s ease;'>Submit</button></div></div></div>`
+  <img id='drag13' src='${generated_stimuli[12]['stimulus']}' alt='${generated_stimuli[12]['label']}' width='100' height='120' draggable='true' ondragstart='drag(event)'></div><div id='div1' style='width: 1200px; height: 400px; margin: 0 auto; position: relative; bottom: 10%; border: 1px solid #aaaaaa; background-color: lightgray;'ondrop='drop(event)' ondragover='allowDrop(event)'><div id='div3' style='width: 1200px; height: 400px; margin: 0 auto; position: relative; '></div><img id='imgL' style='position:relative;right:450px;bottom: 250px;border:2px solid blue' width='100' height='120'><img id='imgR' style='position:relative;left:450px;bottom: 250px;border:2px solid blue' width='100' height='120'><img id='return' src='../static/images/return.png' style='position: relative;left: 450px;bottom: 100px ;border: 2px solid black' width='50'height='50'></div></div></div>`
   ]
   phase3[0].stimulus = `<div id='displayhelp' style='display:none'><p>Click and drag the locations to the gray box to make your flight plans
-  <br /> you can 'book' flights by clicking on the two cities in order <br> You can remove flights by clicking on a city and clicking the return arrow on the bottom right of the gray box <br> once you are finished, press the 'next client' button to book the next client</p></div><button id='batman' style='display: block;margin: 0 auto;padding: 10px 20px;background-color: #4CAF50;color: black;border: none;border-radius: 8px;font-size: 16px;cursor: pointer;box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);transition: background-color 0.3s ease;', onclick='initiatep3()'>Click to start</button><div id='spiderman' style='display: none;'><div id='Phase3Body'><br><div id='div2'  style='width: 700px; margin: 0 auto; position: relative; bottom: 10%; border: 1px solid #aaaaaa;'><img id='drag01' src='${generated_stimuli[0]['stimulus']}' alt='${generated_stimuli[0]['label']}' width='100' height='120' draggable='true' ondragstart='drag(event)'><img id='drag02' src='${generated_stimuli[1]['stimulus']}' alt='${generated_stimuli[1]['label']}' width='100' height='120' draggable='true' ondragstart='drag(event)'><img id='drag03' src='${generated_stimuli[2]['stimulus']}' alt='${generated_stimuli[2]['label']}' width='100' height='120' draggable='true' ondragstart='drag(event)'><img id='drag04' src='${generated_stimuli[3]['stimulus']}' alt='${generated_stimuli[3]['label']}' alt='Custer' width='100' height='120' draggable='true' ondragstart='drag(event)'>
+  <br /> you can 'book' flights by clicking on the two cities in order <br> You can remove flights by clicking on a city and clicking the return arrow on the bottom right of the gray box <br> once you are finished, press the 'next client' button to book the next client</p></div><button id='batman' style='display: block;margin: 0 auto;padding: 10px 20px;background-color: #4CAF50;color: black;border: none;border-radius: 8px;font-size: 16px;cursor: pointer;box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);transition: background-color 0.3s ease;', onclick='initiatep3()'>Click to start</button><div id='spiderman' style='display: none;'><div id='Phase3Body'><button id="nextButton" style="display: block; margin: 20px auto; padding: 10px 20px; background-color: #4CAF50; color: black; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); transition: background-color 0.3s ease;">Submit</button><br><div id='div2'  style='width: 700px; margin: 0 auto; position: relative; bottom: 10%; border: 1px solid #aaaaaa;'><img id='drag01' src='${generated_stimuli[0]['stimulus']}' alt='${generated_stimuli[0]['label']}' width='100' height='120' draggable='true' ondragstart='drag(event)'><img id='drag02' src='${generated_stimuli[1]['stimulus']}' alt='${generated_stimuli[1]['label']}' width='100' height='120' draggable='true' ondragstart='drag(event)'><img id='drag03' src='${generated_stimuli[2]['stimulus']}' alt='${generated_stimuli[2]['label']}' width='100' height='120' draggable='true' ondragstart='drag(event)'><img id='drag04' src='${generated_stimuli[3]['stimulus']}' alt='${generated_stimuli[3]['label']}' alt='Custer' width='100' height='120' draggable='true' ondragstart='drag(event)'>
     <img id='drag05' src='${generated_stimuli[4]['stimulus']}' alt='${generated_stimuli[4]['label']}' width='100' height='120' draggable='true' ondragstart='drag(event)'><img id='drag06' src='${generated_stimuli[5]['stimulus']}' alt='${generated_stimuli[5]['label']}' width='100' height='120' draggable='true' ondragstart='drag(event)'><img id='drag07' src='${generated_stimuli[6]['stimulus']}' alt='${generated_stimuli[6]['label']}' width='100' height='120' draggable='true' ondragstart='drag(event)'><img id='drag08' src='${generated_stimuli[7]['stimulus']}' alt='${generated_stimuli[7]['label']}' width='100' height='120' draggable='true' ondragstart='drag(event)'><img id='drag09' src='${generated_stimuli[8]['stimulus']}' alt='${generated_stimuli[8]['label']}' width='100' height='120' draggable='true' ondragstart='drag(event)'><img id='drag10' src='${generated_stimuli[9]['stimulus']}' alt='${generated_stimuli[9]['label']}' width='100' height='120' draggable='true' ondragstart='drag(event)'><img id='drag11' src='${generated_stimuli[10]['stimulus']}' alt='${generated_stimuli[10]['label']}' width='100' height='120' draggable='true' ondragstart='drag(event)'><img id='drag12' src='${generated_stimuli[11]['stimulus']}' alt='${generated_stimuli[11]['label']}' width='100' height='120' draggable='true' ondragstart='drag(event)'>
-     <img id='drag13' src='${generated_stimuli[12]['stimulus']}' alt='${generated_stimuli[12]['label']}' width='100' height='120' draggable='true' ondragstart='drag(event)'></div><div id='div1' style='width: 1200px; height: 400px; margin: 0 auto; position: relative; bottom: 10%; border: 1px solid #aaaaaa; background-color: lightgray;'ondrop='drop(event)' ondragover='allowDrop(event)'><div id='div3' style='width: 1200px; height: 400px; margin: 0 auto; position: relative; '></div><img id='imgL' style='position:relative;right:450px;bottom: 250px;border:2px solid blue' width='100' height='120'><img id='imgR' style='position:relative;left:450px;bottom: 250px;border:2px solid blue' width='100' height='120'><img id='return' src='../static/images/return.png' style='position: relative;left: 450px;bottom: 100px ;border: 2px solid black' width='50'height='50'><button id='nextButton' style='display: none;margin: 0 auto;padding: 10px 20px;background-color: #4CAF50;color: black;border: none;border-radius: 8px;font-size: 16px;cursor: pointer;box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);transition: background-color 0.3s ease;'>Submit</button></div></div></div>`
+     <img id='drag13' src='${generated_stimuli[12]['stimulus']}' alt='${generated_stimuli[12]['label']}' width='100' height='120' draggable='true' ondragstart='drag(event)'></div><div id='div1' style='width: 1200px; height: 400px; margin: 0 auto; position: relative; bottom: 10%; border: 1px solid #aaaaaa; background-color: lightgray;'ondrop='drop(event)' ondragover='allowDrop(event)'><div id='div3' style='width: 1200px; height: 400px; margin: 0 auto; position: relative; '></div><img id='imgL' style='position:relative;right:450px;bottom: 250px;border:2px solid blue' width='100' height='120'><img id='imgR' style='position:relative;left:450px;bottom: 250px;border:2px solid blue' width='100' height='120'><img id='return' src='../static/images/return.png' style='position: relative;left: 450px;bottom: 100px ;border: 2px solid black' width='50'height='50'></div></div></div>`
 
   recon_phase3[0].stimulus=["<div id='displayhelp' style='display:none'><p>Click and drag the objects to the gray box"
   +"<br /> You can connect the images by clicking the two images in order <br> You can remove an object by clicking on it and then clicking the return arrow on the bottom right of the gray box <br> once all the objects are in the grey box and have <b>at least one line connecting them</b>, press the 'submit' button that will appear</p><button id='nextButton' style='display:none;margin: 0 auto;padding: 10px 20px;background-color: #4CAF50;color: black;border: none;border-radius: 8px;font-size: 16px;cursor: pointer;box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);transition: background-color 0.3s ease;'>Submit</button>"
